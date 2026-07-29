@@ -6,6 +6,9 @@
 <title>SEANS · Borsa İstanbul, döviz, altın ve halka arzlar</title>
 <meta name="description" content="Borsa İstanbul'un tüm hisseleri, döviz, altın, gümüş ve petrol fiyatları; neon grafikler, takip listesi, portföy ve halka arz takvimi.">
 <meta name="theme-color" content="#04060d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="ikon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="ikon-192.png">
 <style>
 :root{
   --bg:#04060d; --bg2:#070c18; --kart:rgba(140,170,255,.045); --kart2:rgba(140,170,255,.07);
@@ -206,6 +209,86 @@ p.acik{color:var(--dim);font-size:13.5px;line-height:1.6;max-width:66ch;margin-b
 #sayfalar .ara{color:var(--sonuk);font:600 12px/1 var(--mono);padding:0 3px}
 p.dipnot{margin-top:12px;font:400 11.5px/1.7 var(--sans);color:var(--sonuk);max-width:70ch}
 
+/* bugün ne oldu */
+#bugun{padding:17px 19px 15px;margin-bottom:14px}
+#bugun .ust{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:11px}
+#bugun h3{font:600 13px/1 var(--sans)}
+#bugun .tar{font:400 10.5px/1 var(--mono);letter-spacing:.12em;color:var(--sonuk);text-transform:uppercase}
+#bugun p{font:400 13.5px/1.75 var(--sans);color:var(--dim);max-width:96ch}
+#bugun b{color:var(--ink);font-weight:600}
+#bugun .art{color:var(--yuk);font-weight:600} #bugun .eks{color:var(--dus);font-weight:600}
+
+/* 52 hafta konum çubuğu */
+.konum{position:relative;height:3px;border-radius:2px;background:rgba(140,170,255,.14);
+  width:78px;margin:6px 0 0 auto;overflow:visible}
+.konum i{position:absolute;top:-2.5px;width:2px;height:8px;border-radius:1px;background:var(--cy);
+  box-shadow:0 0 7px var(--cy)}
+.konum.dip i{background:var(--dus);box-shadow:0 0 7px var(--dus)}
+.konum.zirve i{background:var(--yuk);box-shadow:0 0 7px var(--yuk)}
+
+/* alarmlar */
+.form select{padding:10px 13px;border-radius:10px;border:1px solid var(--cizgi);
+  background:var(--kart);color:var(--ink);outline:0;font:400 13px/1 var(--sans)}
+.form select:focus{border-color:var(--cy)}
+.alarm{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;margin-bottom:8px;
+  background:var(--kart);border:1px solid var(--cizgi);border-radius:12px;font-family:var(--mono)}
+.alarm.calar{border-color:rgba(255,66,112,.45);background:linear-gradient(120deg,rgba(255,66,112,.1),var(--kart))}
+.alarm .kd{font:700 14px/1 var(--mono);letter-spacing:.03em;min-width:66px}
+.alarm .ks{font:500 12.5px/1.4 var(--mono);color:var(--dim);flex:1;min-width:190px}
+.alarm .ks b{color:var(--ink)}
+.alarm .du{font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--sonuk)}
+.alarm.calar .du{color:var(--dus)}
+.alarm .sil{color:var(--sonuk);font-size:15px;padding:4px 7px;border-radius:7px}
+.alarm .sil:hover{color:var(--dus);background:var(--kart2)}
+
+#uyari{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140%);z-index:80;
+  display:flex;flex-direction:column;gap:8px;transition:transform .3s;pointer-events:none;width:min(420px,92vw)}
+#uyari.on{transform:translateX(-50%) translateY(0)}
+#uyari div{pointer-events:auto;padding:13px 17px;border-radius:13px;background:rgba(8,13,26,.97);
+  border:1px solid rgba(255,66,112,.5);box-shadow:0 16px 44px rgba(0,0,0,.6);
+  font:500 13px/1.55 var(--sans);color:var(--ink)}
+#uyari b{font:700 13.5px/1.4 var(--mono);letter-spacing:.03em}
+
+/* halka arz karnesi */
+#arzKarne{padding:17px 19px 16px;margin-bottom:20px}
+.karneSay{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:11px;margin:13px 0 4px}
+.karneSay div{background:var(--kart);border:1px solid var(--cizgi);border-radius:11px;padding:11px 13px}
+.karneSay b{display:block;font:700 18px/1.15 var(--mono)}
+.karneSay span{display:block;margin-top:5px;font:400 9.5px/1.3 var(--mono);letter-spacing:.13em;
+  color:var(--sonuk);text-transform:uppercase}
+.dagBar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:15px 0 9px;background:var(--kart)}
+.dagBar i{display:block;height:100%}
+.dagNot{display:flex;justify-content:space-between;font:500 11px/1.4 var(--mono);color:var(--sonuk)}
+
+/* ekonomik takvim */
+h3.altbas{font:600 15px/1.3 var(--sans);margin:34px 0 12px}
+.eko{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 16px;margin-bottom:8px;
+  background:var(--kart);border:1px solid var(--cizgi);border-radius:12px}
+.eko.yakin{border-color:rgba(58,224,255,.36);background:linear-gradient(120deg,rgba(58,224,255,.08),var(--kart))}
+.eko.gecmis{opacity:.5}
+.eko .gun{font:700 15px/1.15 var(--mono);min-width:78px;letter-spacing:.02em}
+.eko .gun span{display:block;font:400 9.5px/1.3 var(--mono);letter-spacing:.14em;color:var(--sonuk);
+  text-transform:uppercase;margin-top:3px}
+.eko .ad{flex:1;min-width:200px;font:500 13.5px/1.45 var(--sans)}
+.eko .kalan{font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.eko.yakin .kalan{color:var(--cy)}
+
+/* ne zaman alsaydım */
+.nzs{margin-top:24px;padding-top:20px;border-top:1px solid var(--cizgi)}
+.nzs .bs{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+.nzs .bs span{font:400 9.5px/1.4 var(--mono);letter-spacing:.14em;color:var(--sonuk);text-transform:uppercase}
+.nzs input{width:112px;padding:8px 11px;border-radius:9px;border:1px solid var(--cizgi);
+  background:var(--kart);outline:0;font:600 13px/1 var(--mono);color:var(--ink)}
+.nzs input:focus{border-color:var(--cy)}
+.nzs .satirlar{display:grid;gap:7px}
+.nzs .sr{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:baseline;
+  padding:9px 12px;border-radius:10px;background:var(--kart);font-family:var(--mono)}
+.nzs .sr.ana{background:var(--kart2);border:1px solid var(--cizgi2)}
+.nzs .sr .n{font:500 12.5px/1.4 var(--sans);color:var(--dim)}
+.nzs .sr.ana .n{color:var(--ink);font-weight:600}
+.nzs .sr .d{font:700 14px/1.4 var(--mono)}
+.nzs .sr .y{font:600 12px/1.4 var(--mono);min-width:74px;text-align:right}
+
 /* analist hedefi */
 td.hedef b{display:block;font:600 13px/1.3 var(--mono)}
 td.hedef span{display:block;font:500 11px/1.3 var(--mono);margin-top:2px}
@@ -390,6 +473,7 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
       <button class="sekme on" data-b="piyasa">Piyasa</button>
       <button class="sekme" data-b="portfoy">Portföy</button>
       <button class="sekme" data-b="arz">Halka Arz</button>
+      <button class="sekme" data-b="takvim">Takvim</button>
     </div>
     <div id="araKutu">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
@@ -403,6 +487,7 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
 <main>
   <!-- ══ PİYASA ══ -->
   <section class="bolum on" id="b-piyasa">
+    <div class="kart" id="bugun"></div>
     <div id="ozet"></div>
 
     <div class="kart" id="nabizKutu">
@@ -485,6 +570,21 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
     <h2 class="bas" style="margin-top:38px">Takip listem</h2>
     <p class="acik">Tablodaki yıldıza dokunarak eklediğiniz hisseler.</p>
     <div class="takipKart" id="takipKart"></div>
+
+    <h2 class="bas" style="margin-top:38px">Fiyat alarmları</h2>
+    <p class="acik">Bir hisse belirlediğiniz seviyeyi geçtiğinde uyarı verir.
+       Alarmlar <b>sayfa açıkken</b> kontrol edilir — sekmeyi kapatırsanız çalışmaz.</p>
+    <div class="form">
+      <input class="kodu" id="aKod" placeholder="KOD" maxlength="6" aria-label="Hisse kodu">
+      <select id="aYon" aria-label="Koşul">
+        <option value="ust">şunun üstüne çıkarsa</option>
+        <option value="alt">şunun altına inerse</option>
+      </select>
+      <input class="sy2" id="aFiyat" placeholder="fiyat ₺" inputmode="decimal" aria-label="Fiyat">
+      <button class="dbtn ana" id="aEkle">Alarm kur</button>
+      <button class="dbtn" id="aIzin">Bildirime izin ver</button>
+    </div>
+    <div id="alarmListe"></div>
   </section>
 
   <!-- ══ HALKA ARZ ══ -->
@@ -492,6 +592,7 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
     <h2 class="bas">Halka arzlar</h2>
     <p class="acik">Talep toplama takvimi ve son bir yılda halka açılan şirketlerin
        arz fiyatına göre bugünkü getirisi.</p>
+    <div class="kart" id="arzKarne"></div>
     <div id="arzYaklasan"></div>
     <h2 class="bas" style="margin-top:30px">Son bir yılda halka açılanlar</h2>
     <p class="acik">Getiri, halka arz fiyatı ile son fiyat arasındaki farktır; temettü ve
@@ -508,9 +609,23 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
       </div>
     </div>
   </section>
+
+  <!-- ══ EKONOMİK TAKVİM ══ -->
+  <section class="bolum" id="b-takvim">
+    <h2 class="bas">Ekonomik takvim</h2>
+    <p class="acik">Merkez Bankası'nın resmî duyuru takvimi: faiz kararları, toplantı
+       özetleri, Enflasyon ve Finansal İstikrar raporları. Tarihler
+       <a href="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Duyurular/Takvim"
+          target="_blank" rel="noopener" style="color:var(--cy)">TCMB</a>'nin kendi
+       takviminden alınır.</p>
+    <div id="ekoYaklasan"></div>
+    <h3 class="altbas">Geçmiş</h3>
+    <div id="ekoGecmis"></div>
+  </section>
 </main>
 
 <div id="perde"><div id="detay" role="dialog" aria-modal="true"></div></div>
+<div id="uyari" role="status" aria-live="polite"></div>
 
 <footer>
   <p>
@@ -862,6 +977,18 @@ function suzul(){
     return ters ? -d : d;
   });
 }
+/* fiyat 52 haftalık aralığın neresinde? — sayı okumadan görünsün diye ince çubuk */
+function konum52(v){
+  const s = v.seri.slice(-252);
+  const d = Math.min(...s), y = Math.max(...s);
+  return { d, y, oran: y === d ? 0.5 : (v.f - d) / (y - d) };
+}
+function konumCubuk(v){
+  const k = konum52(v);
+  const sinif = k.oran >= .9 ? " zirve" : k.oran <= .1 ? " dip" : "";
+  return '<div class="konum' + sinif + '" title="52 hafta: ' + fmt(k.d, 2) + " – " + fmt(k.y, 2) +
+         '"><i style="left:calc(' + (k.oran * 100).toFixed(1) + '% - 1px)"></i></div>';
+}
 function hedefHucre(h){
   if (!h.hedef) return '<td class="hedef" style="color:var(--sonuk)">—</td>';
   return '<td class="hedef"><b>' + fmt(h.hedef, 2) + "</b>" +
@@ -883,7 +1010,7 @@ function tabloYaz(){
       '<td><button class="yildiz' + (S.takip.includes(h.kod) ? " on" : "") +
         '" data-y="' + h.kod + '" aria-label="Takip listesi">' + (S.takip.includes(h.kod) ? "★" : "☆") + "</button></td>" +
       '<td class="kod"><b>' + h.kod + "</b><span>" + h.ad + "</span></td>" +
-      "<td>" + fmt(h.f, 2) + "</td>" +
+      "<td>" + fmt(h.f, 2) + konumCubuk(h) + "</td>" +
       '<td class="' + snf(h.gun) + '">' + yzd(h.gun) + "</td>" +
       '<td class="' + snf(h.yil) + '">' + yzd(h.yil) + "</td>" +
       hedefHucre(h) +
@@ -1001,6 +1128,7 @@ function detayAc(v){
       "<div><b>" + fmt(son52.reduce((a, c) => a + c, 0) / son52.length, 2) + "</b><span>1 yıl ortalama</span></div>" +
     "</div>" +
     (v.hedef ? hedefBlok(v) : "") +
+    '<div class="nzs" id="nzs"></div>' +
     '<div class="dgm">' +
       '<button class="dbtn" id="dTakip">' + (takipte ? "★ Takipten çıkar" : "☆ Takibe al") + "</button>" +
       (hisse ? '<button class="dbtn ana" id="dPort">Portföye ekle</button>' : "") +
@@ -1016,10 +1144,55 @@ function detayAc(v){
     const a = e.target.closest("[data-a]"); if (!a || a.disabled) return;
     acikAralik = a.dataset.a;
     $$("#araliklar .ar").forEach(x => x.classList.toggle("on", x === a));
-    grafikCiz();
+    grafikCiz(); nzsYaz();
   };
   grafikCiz();
   grafikIpucu();
+  nzsYaz();
+}
+
+/* ── "Ne zaman alsaydım?" — seçili dönemde aynı parayı nereye koysaydın ── */
+let nzsTutar = 10000;
+function donemGetiri(v, basTs){
+  if (!v || !v.tar || !v.tar.length || !v.seri.length) return null;
+  let i = v.tar.findIndex(t => t >= basTs);
+  if (i < 0) i = 0;
+  const bas = v.seri[i], son = v.seri[v.seri.length - 1];
+  return bas > 0 ? son / bas : null;
+}
+function nzsYaz(){
+  const el = $("#nzs");
+  if (!el || !acikVarlik || !acikTs || !acikTs.length) { if (el) el.innerHTML = ""; return; }
+  const v = acikVarlik;
+  const basTs = acikTs[0];
+  const kars = [
+    { ad:kisaKod(v.kod) + " · " + (v.tur === "hisse" ? "bu hisse" : v.ad), v, ana:true },
+    { ad:"Dolar", v:DKOD["USDTRY=X"] },
+    { ad:"Gram altın", v:DKOD["GRAMALTIN"] },
+    { ad:"BIST 100", v:DKOD["XU100.IS"] },
+  ].filter(k => k.v && k.v !== undefined);
+  const satirlar = [];
+  for (const k of kars){
+    if (k.v === v && !k.ana) continue;
+    const kat = donemGetiri(k.v, basTs);
+    if (kat == null) continue;
+    const sonuc = nzsTutar * kat, kzy = (kat - 1) * 100;
+    satirlar.push('<div class="sr' + (k.ana ? " ana" : "") + '">' +
+      '<span class="n">' + k.ad + "</span>" +
+      '<span class="d">' + fmt(sonuc, 0) + " ₺</span>" +
+      '<span class="y ' + snf(kzy) + '">' + yzd(kzy) + "</span></div>");
+  }
+  const bas = new Date(basTs * 1000);
+  el.innerHTML =
+    '<div class="bs"><span>' + ARALIK_AD[acikAralik] + " önce</span>" +
+      '<input id="nzsTutar" inputmode="decimal" value="' + nzsTutar + '" aria-label="Tutar">' +
+      "<span>₺ koysaydım (" + bas.getDate() + " " + AYK[bas.getMonth()] + " " + bas.getFullYear() + ")</span></div>" +
+    '<div class="satirlar">' + satirlar.join("") + "</div>";
+  $("#nzsTutar").oninput = e => {
+    const n = parseFloat(e.target.value.replace(/\./g, "").replace(",", "."));
+    if (n > 0 && n < 1e12){ nzsTutar = n; const p = e.target.selectionStart; nzsYaz();
+      const y = $("#nzsTutar"); if (y){ y.focus(); try { y.setSelectionRange(p, p); } catch {} } }
+  };
 }
 let acikHaftalik = false, sonBilgi = null;
 function grafikCiz(vurgu){
@@ -1210,11 +1383,173 @@ function arzYaz(){
   };
 }
 
+/* ═══════════════════ BUGÜN NE OLDU ═══════════════════ */
+function bugunYaz(){
+  const x = DKOD["XU100.IS"], usd = DKOD["USDTRY=X"], alt = DKOD["GRAMALTIN"];
+  const artan = HISSE.filter(h => h.gun > 0), azalan = HISSE.filter(h => h.gun < 0);
+  // BIST'te günlük fiyat marjı ±%10: sınıra dayananlar tavan/taban sayılır
+  const tavan = HISSE.filter(h => h.gun >= 9.5).length, taban = HISSE.filter(h => h.gun <= -9.5).length;
+  const s = HISSE.slice().sort((a, b) => b.gun - a.gun);
+  const enIyi = s[0], enKotu = s[s.length - 1];
+  const im = n => '<em class="' + snf(n) + '">' + yzd(n) + "</em>";
+  const yon = n => n > 0 ? "yükseldi" : n < 0 ? "geriledi" : "yatay kaldı";
+
+  const cumleler = [];
+  if (x) cumleler.push("BIST 100 <b>" + fmt(x.f, 0) + "</b> puana " + yon(x.gun) + " " + im(x.gun) + ".");
+  cumleler.push("İşlem gören <b>" + HISSE.length + "</b> payın <b>" + artan.length +
+    "</b>'i artıda, <b>" + azalan.length + "</b>'i ekside kapandı" +
+    (tavan || taban ? "; <b>" + tavan + "</b> pay tavana, <b>" + taban + "</b> pay tabana yakın." : "."));
+  if (enIyi && enKotu) cumleler.push("Günün yıldızı <b>" + enIyi.kod + "</b> " + im(enIyi.gun) +
+    ", en sert kaybeden <b>" + enKotu.kod + "</b> " + im(enKotu.gun) + ".");
+  if (usd && alt) cumleler.push("Dolar <b>" + fmt(usd.f, 2) + " ₺</b> " + im(usd.gun) +
+    ", gram altın <b>" + fmt(alt.f, 0) + " ₺</b> " + im(alt.gun) + ".");
+  if (x && usd){
+    const fark = x.yil - usd.yil;
+    cumleler.push("Son bir yılda endeks " + im(x.yil) + ", dolar " + im(usd.yil) + " —" +
+      (fark > 0 ? " endeks doları <b>" + fmt(fark, 1) + " puan</b> geçti." :
+                  " dolar endeksi <b>" + fmt(-fark, 1) + " puan</b> geçti."));
+  }
+  $("#bugun").innerHTML =
+    '<div class="ust"><h3>Bugün ne oldu?</h3><span class="tar">' +
+      new Date().toLocaleDateString(TR, { day:"numeric", month:"long", weekday:"long" }) + "</span></div>" +
+    "<p>" + cumleler.join(" ") + "</p>";
+}
+
+/* ═══════════════════ FİYAT ALARMLARI ═══════════════════ */
+if (!Array.isArray(S.alarm)) S.alarm = [];
+function alarmYaz(){
+  const el = $("#alarmListe");
+  if (!S.alarm.length){
+    el.innerHTML = '<p class="acik" style="margin:0">Henüz alarm kurmadınız.</p>';
+    return;
+  }
+  el.innerHTML = S.alarm.map((a, i) => {
+    const h = HKOD[a.kod];
+    return '<div class="alarm' + (a.caldi ? " calar" : "") + '">' +
+      '<span class="kd">' + a.kod + "</span>" +
+      '<span class="ks">' + (a.yon === "ust" ? "▲ üstüne çıkarsa" : "▼ altına inerse") +
+        " <b>" + fmt(a.fiyat, 2) + " ₺</b>" +
+        (h ? " · şu an " + fmt(h.f, 2) : "") + "</span>" +
+      '<span class="du">' + (a.caldi ? "çaldı" : "bekliyor") + "</span>" +
+      '<button class="sil" data-sil="' + i + '" aria-label="Alarmı sil">✕</button></div>';
+  }).join("");
+}
+function alarmEkle(){
+  const kod = $("#aKod").value.trim().toLocaleUpperCase(TR);
+  const fi = parseFloat($("#aFiyat").value.replace(",", "."));
+  if (!HKOD[kod]) return uyar($("#aKod"));
+  if (!(fi > 0)) return uyar($("#aFiyat"));
+  S.alarm.push({ kod, yon:$("#aYon").value, fiyat:fi, caldi:false });
+  kaydet(); alarmYaz();
+  $("#aKod").value = $("#aFiyat").value = "";
+}
+function alarmKontrol(){
+  const calan = [];
+  for (const a of S.alarm){
+    if (a.caldi) continue;
+    const h = HKOD[a.kod];
+    if (!h) continue;
+    if ((a.yon === "ust" && h.f >= a.fiyat) || (a.yon === "alt" && h.f <= a.fiyat)){
+      a.caldi = true; a.calisTs = Date.now(); calan.push({ a, h });
+    }
+  }
+  if (!calan.length) return;
+  kaydet(); alarmYaz();
+  for (const { a, h } of calan){
+    const metin = a.kod + " " + fmt(h.f, 2) + " ₺ — " +
+      (a.yon === "ust" ? "hedefin üstüne çıktı" : "hedefin altına indi") + " (" + fmt(a.fiyat, 2) + " ₺)";
+    duyur("<b>" + a.kod + "</b> alarmı çaldı<br>" + metin);
+    try {
+      if (window.Notification && Notification.permission === "granted")
+        new Notification("SEANS · " + a.kod, { body:metin, tag:"seans-" + a.kod });
+    } catch {}
+  }
+}
+let uyariZaman = null;
+function duyur(html){
+  const k = $("#uyari");
+  const d = document.createElement("div");
+  d.innerHTML = html;
+  k.appendChild(d);
+  k.classList.add("on");
+  clearTimeout(uyariZaman);
+  uyariZaman = setTimeout(() => { k.classList.remove("on"); setTimeout(() => k.innerHTML = "", 400); }, 9000);
+}
+$("#aEkle").onclick = alarmEkle;
+["#aKod","#aFiyat"].forEach(s => $(s).addEventListener("keydown", e => { if (e.key === "Enter") alarmEkle(); }));
+$("#alarmListe").addEventListener("click", e => {
+  const b = e.target.closest("[data-sil]");
+  if (b){ S.alarm.splice(+b.dataset.sil, 1); kaydet(); alarmYaz(); }
+});
+$("#aIzin").onclick = async () => {
+  if (!window.Notification) return duyur("Bu tarayıcı bildirimleri desteklemiyor.");
+  const izin = await Notification.requestPermission();
+  duyur(izin === "granted" ? "Bildirimler açıldı. Sayfa açıkken alarmlar bildirim olarak da gelir."
+                           : "Bildirim izni verilmedi; alarmlar yalnızca sayfada gösterilir.");
+};
+
+/* ═══════════════════ HALKA ARZ KARNESİ ═══════════════════ */
+function karneYaz(){
+  const v = ARZ.filter(a => a.getiri != null);
+  if (!v.length){ $("#arzKarne").innerHTML = ""; return; }
+  const g = v.map(a => a.getiri).sort((a, b) => a - b);
+  const ort = g.reduce((a, c) => a + c, 0) / g.length;
+  const ortanca = g.length % 2 ? g[(g.length - 1) / 2] : (g[g.length/2 - 1] + g[g.length/2]) / 2;
+  const artida = g.filter(x => x > 0).length;
+  const s = v.slice().sort((a, b) => b.getiri - a.getiri);
+  const kova = [ g.filter(x => x <= -25).length, g.filter(x => x > -25 && x <= 0).length,
+                 g.filter(x => x > 0 && x <= 50).length, g.filter(x => x > 50).length ];
+  const renk = ["#ff4270","#ff8fa8","#7ee6b0","#25f39a"];
+  const et = ["%-25 altı","%-25 – 0","%0 – 50","%50 üstü"];
+  $("#arzKarne").innerHTML =
+    '<div class="ust" style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">' +
+      "<h3 style='font:600 13px/1 var(--sans)'>Halka arz karnesi · son 1 yıl</h3>" +
+      "<span class='not' style='font:400 11px/1 var(--mono);color:var(--sonuk)'>" +
+        v.length + " arzın fiyat verisi var</span></div>" +
+    '<div class="karneSay">' +
+      '<div><b class="' + snf(artida - v.length / 2) + '">' + artida + " / " + v.length +
+        "</b><span>arz fiyatının üstünde</span></div>" +
+      '<div><b class="' + snf(ort) + '">' + yzd(ort) + "</b><span>ortalama getiri</span></div>" +
+      '<div><b class="' + snf(ortanca) + '">' + yzd(ortanca) + "</b><span>ortanca getiri</span></div>" +
+      '<div><b class="art">' + s[0].kod + "</b><span>en iyi · " + yzd(s[0].getiri) + "</span></div>" +
+      '<div><b class="eks">' + s[s.length-1].kod + "</b><span>en kötü · " + yzd(s[s.length-1].getiri) + "</span></div>" +
+    "</div>" +
+    '<div class="dagBar">' + kova.map((n, i) =>
+      n ? '<i style="width:' + (n / v.length * 100).toFixed(2) + "%;background:" + renk[i] + '"></i>' : "").join("") +
+    "</div>" +
+    '<div class="dagNot">' + kova.map((n, i) => "<span>" + et[i] + " · " + n + "</span>").join("") + "</div>";
+}
+
+/* ═══════════════════ EKONOMİK TAKVİM ═══════════════════ */
+const EKO = (V.ekonomi || []).slice();
+function ekoYaz(){
+  const bugunIso = new Date().toISOString().slice(0, 10);
+  const kart = (o, gecmis) => {
+    const [y, a, g] = o.t.split("-").map(Number);
+    const kalanGun = Math.round((Date.UTC(y, a - 1, g) - Date.now()) / 864e5);
+    const yakin = !gecmis && kalanGun <= 21;
+    return '<div class="eko' + (gecmis ? " gecmis" : yakin ? " yakin" : "") + '">' +
+      '<div class="gun">' + g + " " + AYK[a - 1] + "<span>" + y + "</span></div>" +
+      '<div class="ad">' + o.ad + "</div>" +
+      '<div class="kalan">' + (gecmis ? "tamamlandı" :
+        kalanGun <= 0 ? "bugün" : kalanGun === 1 ? "yarın" : kalanGun + " gün sonra") + "</div></div>";
+  };
+  const yaklasan = EKO.filter(o => o.t >= bugunIso);
+  const gecmis = EKO.filter(o => o.t < bugunIso).reverse().slice(0, 8);
+  $("#ekoYaklasan").innerHTML = yaklasan.length ? yaklasan.map(o => kart(o, false)).join("")
+    : '<p class="acik">Takvimde yaklaşan duyuru görünmüyor.</p>';
+  $("#ekoGecmis").innerHTML = gecmis.map(o => kart(o, true)).join("");
+}
+
+/* ═══════════════════ PWA ═══════════════════ */
+if ("serviceWorker" in navigator && location.protocol === "https:")
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+
 /* ═══════════════════ BÖLÜMLER ═══════════════════ */
 function bolumAc(ad){
   $$(".bolum").forEach(b => b.classList.toggle("on", b.id === "b-" + ad));
   $$(".sekme").forEach(s => s.classList.toggle("on", s.dataset.b === ad));
-  if (ad === "portfoy"){ portfoyYaz(); takipYaz(); }
+  if (ad === "portfoy"){ portfoyYaz(); takipYaz(); alarmYaz(); }
   const m = $("#menu");
   if (m.getBoundingClientRect().top < 0) m.scrollIntoView({ block:"start" });
 }
@@ -1297,8 +1632,9 @@ async function tazele(){
     canli += await tazeleYahoo(liste);
   } catch {}
   if (canli){
-    ozetYaz(); nabizYaz(); tabloYaz(); seritYaz();
+    ozetYaz(); nabizYaz(); tabloYaz(); seritYaz(); bugunYaz();
     if ($("#b-portfoy").classList.contains("on")){ portfoyYaz(); takipYaz(); }
+    alarmKontrol();
     rozet("canli", "canlı · " + istanbulSaat().metin);
   } else {
     rozet("kapali", "kapanış · " + (V.tarih ? tarihKisa(V.tarih) : "gömülü veri"));
@@ -1310,8 +1646,10 @@ function tarihKisa(iso){
 }
 
 /* ═══════════════════ AÇILIŞ AKIŞI ═══════════════════ */
-seritYaz(); ozetYaz(); nabizYaz(); tabloYaz(); takipYaz(); portfoyYaz(); arzYaz();
+seritYaz(); bugunYaz(); ozetYaz(); nabizYaz(); tabloYaz(); takipYaz(); portfoyYaz();
+arzYaz(); karneYaz(); ekoYaz(); alarmYaz();
 rozet("kapali", "kapanış · " + (V.tarih ? tarihKisa(V.tarih) : "gömülü veri"));
+alarmKontrol();
 
 if (konum.shot){
   $("#giris").style.display = "none";
@@ -1388,6 +1726,39 @@ if (konum.test){
   T("grafik canvas boyutlu", $("#grafik").width > 100);
   T("1 ay aralığı 22 nokta", seriAralik(HISSE[0], "1a").seri.length <= 22);
   detayKapat();
+  T("bugün ne oldu yazıldı", $("#bugun").textContent.includes("BIST 100") &&
+    $("#bugun").textContent.length > 180);
+  T("52 hafta konum çubuğu basıldı", $$("#govde .konum").length === $("#govde").children.length);
+  T("konum oranı 0–1 arası", HISSE.every(h => { const o = konum52(h).oran; return o >= -0.001 && o <= 1.001; }));
+  T("halka arz karnesi basıldı", $("#arzKarne").textContent.includes("ortalama getiri"));
+  T("ekonomik takvim yüklendi", EKO.length > 10 &&
+    EKO.every(o => /^\d{4}-\d{2}-\d{2}$/.test(o.t) && o.ad));
+  T("yaklaşan ekonomik olay var", $$("#ekoYaklasan .eko").length > 0);
+  T("ne zaman alsaydım hesabı", (() => {
+    detayAc(HKOD["THYAO"]);
+    const t = $("#nzs").textContent;
+    detayKapat();
+    return t.includes("₺") && t.includes("Dolar") && t.includes("Gram altın");
+  })());
+  T("alarm kurulup çalıyor", (() => {
+    const y = S.alarm.slice();
+    const h = HISSE[0];
+    S.alarm = [{ kod:h.kod, yon:"alt", fiyat:h.f * 2, caldi:false }];
+    alarmKontrol();
+    const oldu = S.alarm[0].caldi === true;
+    S.alarm = y; kaydet(); alarmYaz();
+    return oldu;
+  })());
+  T("alarm erken çalmıyor", (() => {
+    const y = S.alarm.slice();
+    const h = HISSE[0];
+    S.alarm = [{ kod:h.kod, yon:"ust", fiyat:h.f * 5, caldi:false }];
+    alarmKontrol();
+    const sessiz = S.alarm[0].caldi === false;
+    S.alarm = y; kaydet(); alarmYaz();
+    return sessiz;
+  })());
+  T("PWA manifest bağlı", !!document.querySelector('link[rel="manifest"]'));
   T("portföy hesabı", (() => {
     const y = S.portfoy.slice();
     S.portfoy = [{ kod:HISSE[0].kod, adet:10, maliyet:1 }];
