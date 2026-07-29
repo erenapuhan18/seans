@@ -2,7 +2,7 @@
    Veri siteye gömülü olduğu için uygulama kabuğu + veri.js önbelleğe alınınca
    site internetsiz de tam çalışır. Canlı tazeleme (jina, truncgil) araya girmez:
    yalnızca aynı kaynaklı GET istekleri ele alınır. */
-const SURUM = "seans-v2-2026-07-29";
+const SURUM = "seans-v3-2026-07-29";
 const KABUK = ["./", "./index.html", "./veri.js", "./manifest.json",
                "./ikon-192.png", "./ikon-512.png"];
 
