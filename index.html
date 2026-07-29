@@ -442,11 +442,66 @@ footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--ciz
 footer a:hover{color:var(--cy)}
 footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
 
-@media(max-width:760px){
-  .menuIc{flex-wrap:wrap;row-gap:9px}
-  #logo{order:1} #veriRozet{order:2;margin-left:auto} #araKutu{order:3;flex:1}
-  .sekmeler{order:4;width:100%;overflow-x:auto;padding-bottom:2px}
-  td.mini{display:none} thead th.minih{display:none}
+/* ── telefon ── */
+@media(max-width:860px){
+  .menuIc{flex-wrap:wrap;row-gap:9px;gap:10px}
+  #logo{order:1;font-size:17px}
+  #veriRozet{order:2;margin-left:auto;padding:6px 10px;font-size:9px;letter-spacing:.08em}
+  #araKutu{order:3;flex:1 1 130px;padding:8px 12px}
+  #ara{width:100%;font-size:16px}                 /* 16px altı iOS'ta odakta sayfayı yakınlaştırır */
+  /* flex:1 1 0% width:100%'ü eziyordu; sekmeler 39px'e sıkışıp ekran dışına kayıyordu */
+  .sekmeler{order:4;flex:0 0 100%;width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .sekme{padding:9px 4px;font-size:12.5px;text-align:center;white-space:nowrap}
+}
+@media(max-width:560px){
+  main{padding-left:13px;padding-right:13px}
+  h2.bas{font-size:20px}
+  p.acik{font-size:13.5px}
+  #ozet{grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:9px}
+  .ok{padding:12px 12px 10px} .ok .fi{font-size:19px} .ok canvas{height:38px}
+  #bugun{padding:15px 15px 13px} #bugun p{font-size:13.5px;line-height:1.8}
+  .kutucuk{width:9px;height:9px;border-radius:2px}   /* 618 kutucuk telefonda yarım ekran kaplıyordu */
+  #nabiz{gap:2.5px}
+  .uc button{grid-template-columns:16px auto 1fr auto;gap:8px;padding:6px 5px}
+  /* tabloyu yatay kaydırmadan sığdır: yıllık değişim sütunu gizlenir, detayda zaten var */
+  table{min-width:0}
+  th.yilh,td.yilh{display:none}
+  td,thead th{padding:9px 6px}
+  thead th{font-size:8.5px;letter-spacing:.08em}
+  td{font-size:12.5px}
+  td:first-child,thead th:first-child{width:30px;padding-left:9px;padding-right:0}
+  .yildiz{font-size:14px;padding:2px}
+  td.kod b{font-size:13px} td.kod span{font-size:10px;max-width:17ch}
+  .uzunAd{display:none}                            /* dar ekranda "Analist hedefi" → "hedefi" */
+  td.hedef b{font-size:12px} td.hedef span{font-size:10px}
+  .konum{width:58px}
+  .filtre{gap:6px} .cip{padding:7px 12px;font-size:12px}
+  .sayac{width:100%;margin-left:0;text-align:right}
+  #detay{padding:16px 15px;border-radius:15px}
+  #detay .kod{font-size:23px}
+  .istat{grid-template-columns:1fr 1fr;gap:8px}
+  .nzs .sr{grid-template-columns:1fr auto;row-gap:2px}
+  .nzs .sr .y{grid-column:2;text-align:right}
+  .eko{gap:10px;padding:12px 13px}
+  .eko .gun{min-width:64px;font-size:14px}
+  .eko .ad{min-width:0;font-size:12.5px;flex:1 1 100%;order:3}
+  .eko .kalan{font-size:10px}
+  .alarm{gap:8px;padding:11px 13px}
+  .alarm .ks{min-width:0;flex:1 1 100%;order:3;font-size:12px}
+  .karneSay{grid-template-columns:1fr 1fr;gap:8px}
+  .hedefBar .etiket{flex-wrap:wrap}
+  .hedefBar .etiket span:nth-child(2){order:3;flex:1 1 100%;margin-top:5px;text-align:center}
+  .form input,.form select{font-size:16px}
+}
+/* kurulu uygulamada tarayıcı çubuğu yok: çentik ve alt çubuk altında kalmayalım */
+@supports(padding:max(0px)){
+  #menu{padding-top:env(safe-area-inset-top,0px)}
+  .menuIc{padding-left:max(clamp(14px,3vw,28px),env(safe-area-inset-left,0px));
+          padding-right:max(clamp(14px,3vw,28px),env(safe-area-inset-right,0px))}
+  main{padding-left:max(13px,env(safe-area-inset-left,0px));
+       padding-right:max(13px,env(safe-area-inset-right,0px))}
+  footer{padding-bottom:calc(44px + env(safe-area-inset-bottom,0px))}
+  #uyari{bottom:calc(22px + env(safe-area-inset-bottom,0px))}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -523,8 +578,8 @@ footer .uyari{color:var(--dim);font-weight:600;margin-bottom:7px;display:block}
             <th data-s="kod">Kod</th>
             <th data-s="f">Son</th>
             <th data-s="g">Gün</th>
-            <th data-s="y">1 Yıl</th>
-            <th data-s="hedefFark">Analist hedefi</th>
+            <th class="yilh" data-s="y">1 Yıl</th>
+            <th data-s="hedefFark"><span class="uzunAd">Analist </span>hedefi</th>
           </tr></thead>
           <tbody id="govde"></tbody>
         </table>
@@ -1012,7 +1067,7 @@ function tabloYaz(){
       '<td class="kod"><b>' + h.kod + "</b><span>" + h.ad + "</span></td>" +
       "<td>" + fmt(h.f, 2) + konumCubuk(h) + "</td>" +
       '<td class="' + snf(h.gun) + '">' + yzd(h.gun) + "</td>" +
-      '<td class="' + snf(h.yil) + '">' + yzd(h.yil) + "</td>" +
+      '<td class="yilh ' + snf(h.yil) + '">' + yzd(h.yil) + "</td>" +
       hedefHucre(h) +
     "</tr>").join("");
   sayfalarYaz(sonSayfa);
