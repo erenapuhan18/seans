@@ -1687,31 +1687,52 @@ function yerlestir(d, fi, gun, ts){
   d.canli = true; d.ts = t;
   return true;
 }
+/* Bir spark serisini {fiyat, zaman} noktalarına çevirir, null'ları atar. */
+function sparkNokta(v){
+  const zt = (v && v.timestamp) || [];
+  return ((v && v.close) || [])
+    .map((x, i) => ({ x, t: zt[i] ? zt[i] * 1000 : 0 }))
+    .filter(p => p.x != null && isFinite(p.x));
+}
 async function tazeleYahoo(semboller){
-  const u = "https://query1.finance.yahoo.com/v8/finance/spark?symbols=" +
-    semboller.map(encodeURIComponent).join(",") + "&range=5d&interval=1d";
-  const j = await jina(u);
+  const adres = adim => "https://query1.finance.yahoo.com/v8/finance/spark?symbols=" +
+    semboller.map(encodeURIComponent).join(",") + "&range=5d&interval=" + adim;
+  const j = await jina(adres("1d"));
+
+  /* Yahoo, seans bittikten sonra GÜNLÜK mumu bir süre birleştirmiyor: bar
+     duruyor ama close null (01.08 gecesi tüm BIST sembollerinde 31.07 böyleydi).
+     Veri aslında kayıp değil — saatlik seride 18:00 kapanışı hazır duruyor ve
+     XU100 için truncgil'in verdiği değerle birebir aynı. O yüzden günlük mum
+     eksikse son fiyatı saatlik seriden alıyoruz; günlük seri de "önceki
+     kapanış" olarak kalıyor, böylece günlük değişim doğru çıkıyor.
+     Saatlik istek yalnızca gerektiğinde atılıyor. */
+  const eksikVar = Object.keys(j).some(s => {
+    const c = j[s].close || [];
+    return c.length && c[c.length - 1] == null;
+  });
+  let saatlik = null;
+  if (eksikVar){ try { saatlik = await jina(adres("60m")); } catch {} }
+
   let n = 0, bistBar = 0;
   for (const sym in j){
-    const v = j[sym];
-    const zt = v.timestamp || [];
-    /* Yahoo, seans kapandıktan sonra bile son barı "close: null" olarak
-       yayımlayabiliyor (01.08'de XU100'ün 31.07 barı böyleydi). Eskiden
-       null'lar süzülüp kalan son değer "bugün" sayılıyordu; sonuç olarak
-       Perşembe kapanışı canlı fiyat gibi gösteriliyor ve truncgil'den gelen
-       taze Cuma değerinin üstüne yazılıyordu. Artık her nokta kendi barının
-       zamanını taşıyor, kararı yerlestir() veriyor. */
-    const nokta = (v.close || [])
-      .map((x, i) => ({ x, t: zt[i] ? zt[i] * 1000 : 0 }))
-      .filter(p => p.x != null && isFinite(p.x));
-    if (nokta.length < 2) continue;
-    const son = nokta[nokta.length - 1], onceki = nokta[nokta.length - 2];
+    const gunluk = sparkNokta(j[sym]);
+    if (!gunluk.length) continue;
+    let son = gunluk[gunluk.length - 1];
+    let onceki = gunluk[gunluk.length - 2];
+
+    const sonSaat = saatlik && saatlik[sym] ? sparkNokta(saatlik[sym]).pop() : null;
+    if (sonSaat && istTarih(sonSaat.t) > istTarih(son.t)){
+      onceki = son;        // günlük serinin son kapanışı artık "önceki gün"
+      son = sonSaat;       // güncel fiyat seansın son saatlik mumu
+    }
+    if (!onceki) continue;
+
     const kod = sym.endsWith(".IS") && HKOD[sym.slice(0, -3)] ? sym.slice(0, -3) : sym;
     const d = HKOD[kod] || DKOD[sym];
     if (!d || !uygun(son.x, d.f)) continue;
     /* Yalnızca BIST barları izleniyor: emtia ve parite sembolleri neredeyse
        kesintisiz işlem gördüğü için barları hep "bugün" çıkıyor, hepsinin en
-       tazesini almak BIST'in bir seans geride kaldığını gizliyordu. */
+       tazesini almak BIST'in geride kaldığını gizliyordu. */
     if (sym.endsWith(".IS") && son.t > bistBar) bistBar = son.t;
     if (yerlestir(d, son.x, (son.x / onceki.x - 1) * 100, son.t)) n++;
   }
@@ -1719,6 +1740,19 @@ async function tazeleYahoo(semboller){
 }
 /* Bir zaman damgasının İstanbul takvimindeki günü (sv-SE ISO biçimi verir). */
 const istTarih = ms => new Date(ms).toLocaleDateString("sv-SE", { timeZone:"Europe/Istanbul" });
+/* En son iş günü. Hisse verisinin "geride" sayılması için ölçüt bu: cumartesi
+   günü cuma kapanışını görmek normal, çarşamba günü pazartesi kapanışını
+   görmek değil. Resmî tatiller burada yok — tatil ertesinde bir gün fazladan
+   uyarı çıkabilir, sessiz kalmasına yeğdir. */
+function sonIsGunu(){
+  for (let i = 0; i < 7; i++){
+    const t = Date.now() - i * 86400000;
+    const g = new Intl.DateTimeFormat("en-GB", { timeZone:"Europe/Istanbul", weekday:"short" })
+      .format(new Date(t));
+    if (!["Sat","Sun"].includes(g)) return istTarih(t);
+  }
+  return istTarih(Date.now());
+}
 async function tazele(){
   rozet("bekle", "tazeleniyor…");
   /* İki kaynak ayrı ayrı izleniyor: biri düşerken diğeri çalışırsa rozet eskiden
@@ -1747,7 +1781,7 @@ async function tazele(){
        yazıyoruz. */
     const notlar = [];
     if (eksik.length) notlar.push(eksik.join(", ") + " gecikmeli");
-    if (hisseBar && istTarih(hisseBar) !== istTarih(Date.now()))
+    if (hisseBar && istTarih(hisseBar) < sonIsGunu())
       notlar.push("hisse " + tarihKisa(istTarih(hisseBar)) + " kapanışı");
     rozet("canli", "canlı · " + istanbulSaat().metin +
       (notlar.length ? " · " + notlar.join(" · ") : ""));
