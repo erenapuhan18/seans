@@ -1632,11 +1632,24 @@ async function jina(url){
   if (i < 0) throw new Error("gövde yok");
   return JSON.parse(t.slice(i));
 }
+/* Kaynak dosyayı dakikada bir yeniden üretiyor ve üretimlerin bir kısmı SONDAN
+   KESİK geliyor: gövde bir kaydın ortasında bitiyor, JSON.parse patlıyor ve
+   kur/altın tazelemesi sessizce düşüyordu. (31.07.2026: arka arkaya 20 istekte
+   20'si aynı noktadan kesikti, dakika dönünce düzeldi.) Kesik hep SONDA, bize
+   gereken alanlar ise BAŞTA; o yüzden son tam kayda kadar kırpıp kök nesneyi
+   kapatıyoruz. Kayıtlar düz olduğundan "}," yalnızca kayıtlar arasında geçer,
+   kırpma noktası güvenli. */
+function jsonToparla(metin){
+  const t = metin.replace(/^﻿/, "");   // yanıt BOM ile başlıyor
+  try { return JSON.parse(t); } catch {}
+  const i = t.lastIndexOf("},");
+  if (i > 0){ try { return JSON.parse(t.slice(0, i + 1) + "}"); } catch {} }
+  throw new Error("gövde onarılamadı");
+}
 async function tazeleDoviz(){
   const r = await fetch("https://finans.truncgil.com/v4/today.json", { cache:"no-store" });
   if (!r.ok) throw new Error("HTTP " + r.status);
-  // yanıt BOM ile başlıyor ve res.json() bunda takılıyor: metin alıp BOM'u kırp
-  const j = JSON.parse((await r.text()).replace(/^﻿/, ""));
+  const j = jsonToparla(await r.text());
   const say = v => typeof v === "number" ? v : parseFloat(String(v).replace(/\./g, "").replace(",", "."));
   const es = [["USDTRY=X","USD"], ["EURTRY=X","EUR"], ["GBPTRY=X","GBP"],
               ["GRAMALTIN","GRA"], ["GRAMGUMUS","GUMUS"], ["XU100.IS","XU100"]];
@@ -1647,54 +1660,97 @@ async function tazeleDoviz(){
     if (!kayit || !d) continue;
     const fi = say(kayit.Selling != null ? kayit.Selling : kayit["Satış"]);
     if (!uygun(fi, d.f)) continue;
-    yerlestir(d, fi);
-    n++;
+    // Change = kaynağın bildirdiği günlük yüzde; dakikalık veri olduğu için zaman "şimdi".
+    if (yerlestir(d, fi, say(kayit.Change))) n++;
   }
   return n;
 }
 /* biçim/birim sürprizlerine karşı: gömülü değerden %35'ten fazla sapan fiyatı alma */
 const uygun = (yeni, eski) => isFinite(yeni) && yeni > 0 &&
   (!eski || (yeni > eski * .65 && yeni < eski * 1.35));
-function yerlestir(d, fi){
+/* gun: günlük değişimi artık KAYNAK söylüyor. Eskiden burada
+   fi / seri[uzunluk-2] hesaplanıyordu; gömülü anlık görüntü 29.07 tarihli
+   olduğu için o referans her geçen gün bir gün daha geriye kaydı ve "gün"
+   sütunu birkaç günlük değişimi gösterir oldu — 01.08'de gram altın gerçekte
+   -%1,31 iken sayfada +%0,49 yazıyordu (işaret bile ters). Seri hesabı artık
+   yalnızca kaynak bir değişim bildirmezse yedek olarak kullanılıyor.
+   ts: fiyatın ait olduğu barın zamanı; eski bir bar, daha taze bir kaynağın
+   yazdığının üstüne yazamasın diye. */
+function yerlestir(d, fi, gun, ts){
+  const t = ts || Date.now();
+  if (d.ts && t < d.ts) return false;
   const onc = d.seri[d.seri.length - 2];
-  d.f = fi; d.gun = onc ? (fi / onc - 1) * 100 : d.gun;
+  d.f = fi;
+  d.gun = isFinite(gun) ? gun : (onc ? (fi / onc - 1) * 100 : d.gun);
   d.seri[d.seri.length - 1] = fi;
   d.yil = (fi / d.seri[0] - 1) * 100;
-  d.canli = true;
+  d.canli = true; d.ts = t;
+  return true;
 }
 async function tazeleYahoo(semboller){
   const u = "https://query1.finance.yahoo.com/v8/finance/spark?symbols=" +
     semboller.map(encodeURIComponent).join(",") + "&range=5d&interval=1d";
   const j = await jina(u);
-  let n = 0;
+  let n = 0, bistBar = 0;
   for (const sym in j){
     const v = j[sym];
-    const c = (v.close || []).filter(x => x != null && isFinite(x));
-    if (c.length < 2) continue;
+    const zt = v.timestamp || [];
+    /* Yahoo, seans kapandıktan sonra bile son barı "close: null" olarak
+       yayımlayabiliyor (01.08'de XU100'ün 31.07 barı böyleydi). Eskiden
+       null'lar süzülüp kalan son değer "bugün" sayılıyordu; sonuç olarak
+       Perşembe kapanışı canlı fiyat gibi gösteriliyor ve truncgil'den gelen
+       taze Cuma değerinin üstüne yazılıyordu. Artık her nokta kendi barının
+       zamanını taşıyor, kararı yerlestir() veriyor. */
+    const nokta = (v.close || [])
+      .map((x, i) => ({ x, t: zt[i] ? zt[i] * 1000 : 0 }))
+      .filter(p => p.x != null && isFinite(p.x));
+    if (nokta.length < 2) continue;
+    const son = nokta[nokta.length - 1], onceki = nokta[nokta.length - 2];
     const kod = sym.endsWith(".IS") && HKOD[sym.slice(0, -3)] ? sym.slice(0, -3) : sym;
     const d = HKOD[kod] || DKOD[sym];
-    if (!d || !uygun(c[c.length - 1], d.f)) continue;
-    yerlestir(d, c[c.length - 1]);
-    d.gun = (c[c.length - 1] / c[c.length - 2] - 1) * 100;
-    n++;
+    if (!d || !uygun(son.x, d.f)) continue;
+    /* Yalnızca BIST barları izleniyor: emtia ve parite sembolleri neredeyse
+       kesintisiz işlem gördüğü için barları hep "bugün" çıkıyor, hepsinin en
+       tazesini almak BIST'in bir seans geride kaldığını gizliyordu. */
+    if (sym.endsWith(".IS") && son.t > bistBar) bistBar = son.t;
+    if (yerlestir(d, son.x, (son.x / onceki.x - 1) * 100, son.t)) n++;
   }
-  return n;
+  return { n, bar: bistBar };
 }
+/* Bir zaman damgasının İstanbul takvimindeki günü (sv-SE ISO biçimi verir). */
+const istTarih = ms => new Date(ms).toLocaleDateString("sv-SE", { timeZone:"Europe/Istanbul" });
 async function tazele(){
   rozet("bekle", "tazeleniyor…");
-  let canli = 0;
-  try { canli += await tazeleDoviz(); } catch {}
+  /* İki kaynak ayrı ayrı izleniyor: biri düşerken diğeri çalışırsa rozet eskiden
+     yine "canlı" diyordu ve kur günlerce eski kalabiliyordu. Artık hangi tarafın
+     tazelenmediğini söylüyor. */
+  let kur = 0, hisse = 0, hisseBar = 0;
+  try { kur = await tazeleDoviz(); } catch {}
   try {
     const oncelik = [...new Set([...S.takip, ...S.portfoy.map(p => p.kod)])]
       .filter(k => HKOD[k]).slice(0, 12).map(k => k + ".IS");
     const liste = ["XU100.IS","XU030.IS","GC=F","SI=F","BZ=F","CL=F","EURUSD=X", ...oncelik].slice(0, 20);
-    canli += await tazeleYahoo(liste);
+    const y = await tazeleYahoo(liste);
+    hisse = y.n; hisseBar = y.bar;
   } catch {}
+  const eksik = [];
+  if (!kur) eksik.push("kur");
+  if (!hisse) eksik.push("hisse");
+  const canli = kur + hisse;
   if (canli){
     ozetYaz(); nabizYaz(); tabloYaz(); seritYaz(); bugunYaz();
     if ($("#b-portfoy").classList.contains("on")){ portfoyYaz(); takipYaz(); }
     alarmKontrol();
-    rozet("canli", "canlı · " + istanbulSaat().metin);
+    /* Yahoo bazı günler BIST barını hiç yayımlamıyor (close: null). O zaman
+       hisseler ve BIST 30 bir önceki seansta kalıyor; XU100 truncgil'den taze
+       geldiği için ikisi çelişik görünüyordu. Artık hangi seansa ait olduğunu
+       yazıyoruz. */
+    const notlar = [];
+    if (eksik.length) notlar.push(eksik.join(", ") + " gecikmeli");
+    if (hisseBar && istTarih(hisseBar) !== istTarih(Date.now()))
+      notlar.push("hisse " + tarihKisa(istTarih(hisseBar)) + " kapanışı");
+    rozet("canli", "canlı · " + istanbulSaat().metin +
+      (notlar.length ? " · " + notlar.join(" · ") : ""));
   } else {
     rozet("kapali", "kapanış · " + (V.tarih ? tarihKisa(V.tarih) : "gömülü veri"));
   }
@@ -1710,10 +1766,41 @@ arzYaz(); karneYaz(); ekoYaz(); alarmYaz();
 rozet("kapali", "kapanış · " + (V.tarih ? tarihKisa(V.tarih) : "gömülü veri"));
 alarmKontrol();
 
+/* ─────────── sürekli tazeleme ───────────
+   Eskiden açılışta bir kez tazeleniyordu; sayfa açık kaldıkça veri yaşlanıyor
+   ama rozet hâlâ o ilk turun saatini gösteriyordu. Artık kendini yeniden
+   planlayan bir döngü var: seans açıkken dakikada bir (truncgil zaten dakikalık
+   yayımlıyor), kapalıyken beş dakikada bir. Sekme arka plandayken istek
+   atmıyoruz — öne geldiğinde hemen bir tur yapıyor. */
+const tazeAra = () => seansDurumu().acik ? 60000 : 300000;
+let tazeMesgul = false;
+async function tazeleGuvenli(){
+  if (tazeMesgul) return;                       // turlar üst üste binmesin
+  if (navigator.onLine === false) return;
+  tazeMesgul = true;
+  try { await tazele(); } finally { tazeMesgul = false; }
+}
+function planla(){
+  clearTimeout(planla.zt);
+  planla.zt = setTimeout(async () => {
+    if (!document.hidden) await tazeleGuvenli();
+    planla();                                   // gizliyken de sıraya devam
+  }, tazeAra());
+}
+document.addEventListener("visibilitychange", async () => {
+  if (document.hidden) return;
+  await tazeleGuvenli();
+  planla();
+});
+window.addEventListener("online", tazeleGuvenli);
+
 if (konum.shot){
   $("#giris").style.display = "none";
 } else if (!konum.sim){
-  setTimeout(tazele, 900);
+  setTimeout(async () => {
+    await tazeleGuvenli();
+    if (!konum.test) planla();                  // #test sayfası tek tur kalsın
+  }, 900);
 }
 
 /* açılışta hash ile hisse bağlantısı: #THYAO */
